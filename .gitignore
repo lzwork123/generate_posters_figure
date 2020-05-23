@@ -1,0 +1,16 @@
+.jshintrc
+target
+.classpath
+.project
+.settings
+*.iml
+.idea
+.mymetadata
+.metadata
+RemoteSystemsTempFiles
+*.log
+.DS_Store
+activemq-data
+activemq
+logs
+PLTLOG
