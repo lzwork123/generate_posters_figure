@@ -1,5 +1,7 @@
 package com.lz.util;
 
+import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 
 import com.google.zxing.BarcodeFormat;
@@ -9,6 +11,7 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import com.lz.config.QrConfig;
 
+import cn.hutool.core.img.Img;
 import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.extra.qrcode.QrCodeException;
 
@@ -46,11 +49,41 @@ public class QrCodeUtil {
 	 * 
 	 * @param content 文本内容
 	 * @param config 二维码配置，包括长、宽、边距、颜色等
-	 * @return 二维码图片
+	 * @return 二维码图片（当config对象为null时，方法返回null）
 	 */
 	public static BufferedImage generate(String content, QrConfig config) {
+		if (config == null) {
+			return null;
+		}
+		
 		final BitMatrix bitMatrix = encode(content, BarcodeFormat.QR_CODE, config);
-		return toImage(bitMatrix, config.getForeColor(), config.getBackColor());
+		final BufferedImage image = toImage(bitMatrix, config.getForeColor(), config.getBackColor());
+		
+		final Image logoImg = config.getImg();
+		if (logoImg != null) {
+			// 只有二维码可以贴图
+			final int qrWidth = image.getWidth();
+			final int qrHeight = image.getHeight();
+			int width;
+			int height;
+			// 按照最短的边做比例缩放
+			if (qrWidth < qrHeight) {
+				width = qrWidth / config.getRatio();
+				height = logoImg.getHeight(null) * width / logoImg.getWidth(null);
+			} else {
+				height = qrHeight / config.getRatio();
+				width = logoImg.getWidth(null) * height / logoImg.getHeight(null);
+			}
+
+			Img.from(image).pressImage(
+					Img.from(logoImg).round(0.3).getImg(), // 圆角处理
+					new Rectangle(width, height),
+					1
+			);
+		}
+		
+		return image;
+		
 	}
 	
 	/**
